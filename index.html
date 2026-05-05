@@ -6,6 +6,40 @@
     <title>Modern QR Code Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Default: Dark Mode */
+            --bg-body: #000000;
+            --bg-container: #000000;
+            --container-border: 1px solid #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --input-bg: #111111;
+            --input-border: #222222;
+            --input-text: #ffffff;
+            --qr-box-bg: #050505;
+            --qr-box-border: #333333;
+            --shadow: none;
+            --glow-primary: rgba(108, 92, 231, 0.4);
+            --glow-secondary: rgba(0, 206, 201, 0.4);
+        }
+
+        body.light-mode {
+            /* Light Mode */
+            --bg-body: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --bg-container: rgba(255, 255, 255, 0.95);
+            --container-border: none;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --input-bg: #ffffff;
+            --input-border: #e1e5ee;
+            --input-text: #333333;
+            --qr-box-bg: #fafafa;
+            --qr-box-border: #e1e5ee;
+            --shadow: 0 15px 35px rgba(0,0,0,0.1);
+            --glow-primary: rgba(108, 92, 231, 0.3);
+            --glow-secondary: rgba(0, 206, 201, 0.3);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -14,42 +48,70 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: var(--bg-body);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #333;
+            color: var(--text-primary);
+            transition: background 0.4s ease;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--bg-container);
             padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 24px;
+            border: var(--container-border);
+            box-shadow: var(--shadow);
             text-align: center;
             width: 100%;
             max-width: 420px;
             backdrop-filter: blur(10px);
+            position: relative;
+            transition: all 0.4s ease;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            width: auto;
+            box-shadow: none;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.15) rotate(15deg);
         }
 
         h2 {
-            margin-bottom: 10px;
-            color: #1a1a1a;
+            margin-bottom: 12px;
+            color: var(--text-primary);
             font-weight: 600;
+            font-size: 24px;
+            letter-spacing: -0.5px;
         }
 
         p {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 14px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            line-height: 1.5;
         }
 
         input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e1e5ee;
-            border-radius: 12px;
+            padding: 16px;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border: 2px solid var(--input-border);
+            border-radius: 14px;
             font-size: 15px;
             transition: all 0.3s ease;
             margin-bottom: 20px;
@@ -60,22 +122,31 @@
         input:focus {
             border-color: #6c5ce7;
             box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.15);
+            transform: translateY(-1px);
         }
 
         input.error {
             border-color: #ff7675;
             box-shadow: 0 0 0 4px rgba(255, 118, 117, 0.15);
+            animation: shake 0.4s ease-in-out;
         }
 
-        button {
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        button:not(.theme-toggle) {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             margin-bottom: 12px;
             font-family: 'Inter', sans-serif;
             display: flex;
@@ -87,30 +158,42 @@
         .btn-generate {
             background-color: #6c5ce7;
             color: white;
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            box-shadow: 0 4px 15px var(--glow-primary);
         }
 
         .btn-generate:hover {
             background-color: #5849c4;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--glow-primary);
         }
 
         .btn-generate:active {
             transform: translateY(0);
         }
 
-        .btn-download {
+        /* Fixed Specificity here to guarantee it hides on load */
+        #downloadBtn {
             background-color: #00cec9;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 206, 201, 0.3);
-            display: none;
+            color: #000;
+            box-shadow: 0 4px 15px var(--glow-secondary);
+            display: none; 
         }
 
-        .btn-download:hover {
+        /* The class added via JS to reveal the button */
+        #downloadBtn.show {
+            display: flex;
+            animation: revealDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes revealDown {
+            0% { opacity: 0; transform: translateY(-15px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        #downloadBtn:hover {
             background-color: #00b8b5;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 206, 201, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--glow-secondary);
         }
 
         #qr-box {
@@ -119,27 +202,32 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 2px dashed #e1e5ee;
-            border-radius: 15px;
-            background: #fafafa;
-            transition: 0.3s;
+            border: 2px dashed var(--qr-box-border);
+            border-radius: 16px;
+            background: var(--qr-box-bg);
+            transition: all 0.4s ease;
             position: relative;
+        }
+
+        #qr-box.success {
+            border: 2px solid #6c5ce7;
+            box-shadow: inset 0 0 20px rgba(108, 92, 231, 0.05);
         }
 
         img {
             max-width: 180px;
             display: none;
-            border-radius: 10px;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+            border-radius: 12px;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
         }
 
         @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
+            0% { opacity: 0; transform: scale(0.7) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .loader {
-            border: 4px solid #f3f3f3;
+            border: 4px solid #111;
             border-top: 4px solid #6c5ce7;
             border-radius: 50%;
             width: 40px;
@@ -147,6 +235,11 @@
             animation: spin 1s linear infinite;
             display: none;
             position: absolute;
+        }
+
+        body.light-mode .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6c5ce7;
         }
 
         @keyframes spin {
@@ -159,6 +252,7 @@
 <body>
 
     <div class="container">
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
         <h2>QR Generator</h2>
         <p>Transform any link or text into a QR code instantly.</p>
 
@@ -180,6 +274,18 @@
     <script>
         const inputField = document.getElementById('userInput');
 
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const themeBtn = document.getElementById('themeToggle');
+            
+            if (document.body.classList.contains('light-mode')) {
+                themeBtn.innerHTML = '🌙';
+            } else {
+                themeBtn.innerHTML = '☀️';
+            }
+        }
+
         inputField.addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
@@ -189,6 +295,13 @@
 
         inputField.addEventListener("input", function() {
             inputField.classList.remove("error");
+            
+            // Hide download button if user starts typing a new URL
+            if(document.getElementById('downloadBtn').classList.contains('show')) {
+                document.getElementById('downloadBtn').classList.remove('show');
+                document.getElementById('qrImage').style.display = 'none';
+                document.getElementById('qr-box').classList.remove('success');
+            }
         });
 
         function generateQR() {
@@ -203,18 +316,27 @@
                 return;
             }
 
+            // Reset states for loading
             qrImage.style.display = "none";
-            downloadBtn.style.display = "none";
+            downloadBtn.classList.remove("show"); // Hide button during loading
+            qrBox.classList.remove("success");
+            
             loader.style.display = "block";
-            qrBox.style.border = "2px dashed #6c5ce7";
+            
+            // Subtle pulse border effect while loading
+            qrBox.style.borderColor = "#6c5ce7";
+            qrBox.style.borderStyle = "dashed";
 
-            const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(inputData)}&margin=10`;
+            const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(inputData)}&margin=10`;
 
             qrImage.onload = function() {
                 loader.style.display = "none";
                 qrImage.style.display = "block";
-                downloadBtn.style.display = "flex";
-                qrBox.style.border = "2px solid #e1e5ee";
+                
+                // Add success styling and show download button
+                qrBox.classList.add("success");
+                qrBox.style.borderStyle = "solid";
+                downloadBtn.classList.add("show");
             };
 
             qrImage.src = apiUrl;
@@ -251,3 +373,4 @@
 
 </body>
 </html>
+
